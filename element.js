@@ -13,14 +13,13 @@ customElements.define(
     connectedCallback(
       sheet = this,
       rows = (sheet.getAttribute("rows") || "123").split``,
-      columns = (sheet.getAttribute("columns") || "ABC").split``
+      cols = (sheet.getAttribute("columns") || "ABC").split``
     ) {
       // sheet is WebComponent this
-      sheet.connected = false;
-      sheet.formula = true; // if TRUE calculates all cells
+      sheet.mode = 1; // if TRUE calculates all cells
       sheet.cells = rows
         .map((row, rowidx) =>
-          columns.map((col, colidx) => ({
+          cols.map((col, colidx) => ({
             col,
             row,
             colidx,
@@ -45,7 +44,7 @@ customElements.define(
                 `col${colidx + 1}`,
                 `row${rowidx + 1}`,
               ]),
-              setpart: (value) => {
+              cellpart: (value) => {
                 let input = sheet[name].input; // sheet[name] is a proxy, input points directly to the input element
                 if (value[0] == "-")
                   input.parts.delete((value = value.slice(1)));
@@ -63,12 +62,10 @@ customElements.define(
                 if (evt.keyCode == 13 /* Enter */) {
                   // ------------------------------------------------------------
                   // setter triggers calculation of whole sheet
-                  //if (evt.target.value[0] == "=")
-                  //sheet[name].formula = evt.target.value;
                   // assign calculated value to cell
                   sheet[name].value = evt.target.value;
                   //evt.target.value is now CALCULATED value
-                  sheet.formula = true;
+                  sheet.mode = 1;
                   sheet.calc();
                   // ------------------------------------------------------------
                 } else if (evt.keyCode == 113 /* F2 */) {
@@ -76,6 +73,7 @@ customElements.define(
                   this.toggle(this);
                   // ------------------------------------------------------------
                 } else if (
+                  sheet.mode && // if executing formulas, then navigation is allowed
                   evt.keyCode > 36 &&
                   evt.keyCode <
                     41 /* arrowLeft, arrowUp, arrowRight, arrowDown */
@@ -85,9 +83,9 @@ customElements.define(
                     r = rowidx;
                   if (evt.keyCode == 37 && c > 0) --c;
                   else if (evt.keyCode == 38 && r > 0) --r;
-                  else if (evt.keyCode == 39 && c < columns.length) ++c;
+                  else if (evt.keyCode == 39 && c < cols.length) ++c;
                   else if (evt.keyCode == 40 && r < rows.length) ++r;
-                  sheet.go(String(columns[c]) + String(rows[r]));
+                  sheet.go(String(cols[c]) + String(rows[r]));
                   // ------------------------------------------------------------
                 }
               }, //onkeyup
@@ -106,9 +104,7 @@ customElements.define(
               // ------------------------------------------------------------ proxy setter
               set(target, key, value) {
                 // ------------------------------------------------------------ formula
-                if (value[0] == "=") {
-                  target.formula = value;
-                }
+                if (value[0] == "=") target.formula = value;
                 // ------------------------------------------------------------ default
                 if (key in target) {
                   target[key] = value;
@@ -137,9 +133,9 @@ customElements.define(
         .append(
           sheet.Element({
             tag: "style",
-            innerText:
+            innerHTML:
               `div{display:grid;grid:${"repeat(" + rows.length + ",1fr)"}/${
-                "repeat(" + columns.length + ",1fr)"
+                "repeat(" + cols.length + ",1fr)"
               };gap:0;margin:0;padding:0}` + `input{width:calc(100% - 5px)}`,
           }),
           sheet.Element({
@@ -148,56 +144,50 @@ customElements.define(
           })
         ); // append
       // ------------------------------------------------------------
-      //console.log("col:", sheet.A1.col, sheet.A1.colidx);
-      sheet.connected = true;
     } // connectedCallback
     // ========================================================================
     toggle(sheet = this) {
-      sheet.toggleAttribute("formula", !(sheet.formula = !sheet.formula));
-      this.cells.map((node) => {
+      sheet.toggleAttribute("formula", !(sheet.mode = !sheet.mode));
+      sheet.cells.map((node) => {
         node.value =
           node.formula == node.id
             ? node.value // no formula
-            : sheet.formula
-            ? (this[node.id].value = node.formula)
+            : sheet.mode
+            ? (sheet[node.id].value = node.formula)
             : node.formula || node.value;
-        this.calc();
+        sheet.calc();
       });
     }
     // ========================================================================
     calc(sheet = this) {
-      if (this.connected) {
-        sheet.cells.map((node) => {
-          // ------------------------------------------------------------ set node part attribute
-          node.setpart(
-            sheet.formula || node.id == node.formula ? "-formula" : "formula"
-          );
-          // ------------------------------------------------------------
-          if (sheet.formula) {
-            let value = eval(
-              node.formula
-                .split(/\s*(<?->|[-&|()]|\w+)\s*/) // split on operators
-                .filter(Boolean)
-                .slice(node.formula[0] == "=" ? 1 : 0) // remove = from formula
-                .map((n, i, arr) => {
-                  if (node.id == node.formula) return node.value;
-                  let ret = sheet[n] // if a proxy for this n named input exists
+      sheet.cells.map((node) => {
+        // ------------------------------------------------------------ set node part attribute
+        node.cellpart(
+          sheet.mode || node.id == node.formula ? "-formula" : "formula"
+        );
+        // ------------------------------------------------------------
+        if (sheet.mode && node.formula)
+          node.value = eval(
+            node.formula
+              .split(/\s*(<?->|[-&|()]|\w+)\s*/) // split on operators
+              .filter(Boolean) // remove empty strings
+              //.slice(node.formula[0] == "=" ? 1 : 0) // remove = from formula
+              .map((n) => n.replace("=", ""))
+              .map((n) => {
+                if (node.id == node.formula) return node.value;
+                else
+                  return sheet[n] // if a proxy for this n named input exists
                     ? sheet[n].input.value // return its value
                     : n; //else return input value .eg 10+A1 returns 10
-                  return ret;
-                }).join``
-            ); // eval
-            // ------------------------------------------------------------
-            if (node.formula) node.value = value;
-          }
-        });
-      } else {
-        // not this.connected
-      }
+              }).join``
+          ); // eval
+        // ------------------------------------------------------------
+        //if (node.formula) node.value = value;
+      });
     }
     // ========================================================================
     go(cellname) {
-      this[cellname].focus();
+      this[cellname]?.focus();
     }
     // ========================================================================
   }
