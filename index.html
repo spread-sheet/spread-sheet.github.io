@@ -1,32 +1,46 @@
-<script src="element.js"></script>
-<script src="https://file-size.github.io/element.js"></script>
-<script src="https://mark-down.github.io/element.js"></script>
+<html>
+<head>
+    <script src="element.js"></script>
+    <script src="https://file-size.github.io/element.js"></script>
+    <script src="https://mark-down.github.io/element.js"></script>
 
-<mark-down>
-    # &lt;spread-sheet> Web Component
+</head>
 
-    [Github](https://github.com/spread-sheet/spread-sheet.github.io)
-    
-    *Work In Progress*
-</mark-down>
+<body>
+    <mark-down>
+        # &lt;spread-sheet> Web Component
 
-<style>
-    spread-sheet::part(cell) {
-        text-align: right;
-    }
+        [Github](https://github.com/spread-sheet/spread-sheet.github.io)
 
-    spread-sheet::part(col1) {
-        color: blue;
-        font-weight: bold;
-    }
+        *Work In Progress*
+    </mark-down>
 
-    spread-sheet::part(foo) {
-        color: red
-    }
-</style>
+    <style>
+        spread-sheet::part(cell) {
+            text-align: right;
+        }
 
-<spread-sheet columns="ABC" rows="123"></spread-sheet>
+        spread-sheet::part(col1) {
+            color: blue;
+            font-weight: bold;
+        }
+        
+        spread-sheet::part(formula) {
+            color: red;
+            font-weight: bold;
+        }
+        spread-sheet[formula]::part(cell) {
+            background: pink;
+        }
+    </style>
 
-<h2>The GZipped size loading <a href="https://spread-sheet.github.io/element.min.js">https://spread-sheet.github.io/element.min.js</a> is:</h2>
+    <spread-sheet columns="ABC" rows="123"></spread-sheet>
 
-<file-size gz src="https://spread-sheet.github.io/element.min.js"></file-size>
+    <h2>The GZipped size loading <a
+            href="https://spread-sheet.github.io/element.min.js">https://spread-sheet.github.io/element.min.js</a> is:
+    </h2>
+
+    <file-size gz src="https://spread-sheet.github.io/element.min.js"></file-size>
+</body>
+
+</html>
