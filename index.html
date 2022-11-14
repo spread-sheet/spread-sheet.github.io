@@ -1,4 +1,5 @@
 <html>
+
 <head>
     <script src="element.js"></script>
     <script src="https://file-size.github.io/element.js"></script>
@@ -24,17 +25,30 @@
             color: blue;
             font-weight: bold;
         }
-        
+
         spread-sheet::part(formula) {
             color: red;
             font-weight: bold;
         }
+
         spread-sheet[formula]::part(cell) {
             background: pink;
         }
     </style>
 
-    <spread-sheet columns="ABC" rows="123"></spread-sheet>
+    <spread-sheet id=sheet columns="ABC" rows="123"></spread-sheet>
+
+    <script>
+        sheet.A1.value = 22;
+        sheet.B1.value = 10;
+        sheet.A2.value = 20;
+        sheet.C1.value = "=A1+B1";
+        sheet.C2.value = "=C1";
+        sheet.A3.value = "=(A1*A2+20)*.9";
+        //sheet.C1.focus();
+        sheet.go("A3");
+        sheet.toggle(sheet);
+    </script>
 
     <h2>The GZipped size loading <a
             href="https://spread-sheet.github.io/element.min.js">https://spread-sheet.github.io/element.min.js</a> is:

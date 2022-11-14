@@ -89,7 +89,7 @@ customElements.define(
                   else if (evt.keyCode == 40 && r < rows.length) ++r;
                   sheet.go(String(columns[c]) + String(rows[r]));
                   // ------------------------------------------------------------
-                } 
+                }
               }, //onkeyup
               // ------------------------------------------------------------
             }), // SHEET.ELEMENT
@@ -105,29 +105,17 @@ customElements.define(
               }, // GETTER
               // ------------------------------------------------------------ proxy setter
               set(target, key, value) {
-                try {
-                  // ------------------------------------------------------------ formula
-                  if (value[0] == "=") {
-                    target.formula = value;
-                  }
-                  // ------------------------------------------------------------ default
-                  if (key in target) {
-                    target[key] = value;
-                    console.warn(
-                      "set",
-                      name,
-                      key,
-                      value,
-                      key in target,
-                      target.formula
-                    );
-                    sheet.calc();
-                    return value;
-                  } else {
-                    console.error("SETTER", key, value);
-                  }
-                } catch (e) {
-                  console.error("setter", e);
+                // ------------------------------------------------------------ formula
+                if (value[0] == "=") {
+                  target.formula = value;
+                }
+                // ------------------------------------------------------------ default
+                if (key in target) {
+                  target[key] = value;
+                  sheet.calc();
+                  return value;
+                } else {
+                  console.error("SETTER", key, value);
                 }
               }, // SETTER
               // ------------------------------------------------------------
@@ -162,15 +150,6 @@ customElements.define(
       // ------------------------------------------------------------
       //console.log("col:", sheet.A1.col, sheet.A1.colidx);
       sheet.connected = true;
-      sheet.A1.value = 22;
-      sheet.B1.value = 10;
-      sheet.A2.value = 20;
-      sheet.C1.value = "=A1+B1";
-      sheet.C2.value = "=C1";
-      sheet.A3.value = "=(A1*A2+20)*.9";
-      //sheet.C1.focus();
-      sheet.go("A3");
-      sheet.toggle(sheet);
     } // connectedCallback
     // ========================================================================
     toggle(sheet = this) {
@@ -190,7 +169,9 @@ customElements.define(
       if (this.connected) {
         sheet.cells.map((node) => {
           // ------------------------------------------------------------ set node part attribute
-          node.setpart(sheet.formula || node.id == node.formula ? "-formula" : "formula");
+          node.setpart(
+            sheet.formula || node.id == node.formula ? "-formula" : "formula"
+          );
           // ------------------------------------------------------------
           if (sheet.formula) {
             let value = eval(
