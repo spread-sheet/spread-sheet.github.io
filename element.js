@@ -18,17 +18,17 @@ customElements.define(
       // sheet is WebComponent this
       sheet.mode = 1; // if TRUE calculates all cells
       sheet.cells = rows
-        .map((row, rowidx) =>
-          cols.map((col, colidx) => ({
+        .map((row, rx) =>
+          cols.map((col, cx) => ({
             col,
             row,
-            colidx,
-            rowidx,
+            cx,
+            rx,
             name: String(col) + String(row),
           }))
         )
         .flat()
-        .map(({ col, row, rowidx, colidx, name }) => {
+        .map(({ col, row, rx, cx, name }) => {
           // ------------------------------------------------------------
           sheet[name] = new Proxy(
             sheet.Element({
@@ -37,12 +37,12 @@ customElements.define(
               value: 0,
               // ------------------------------------------------------------
               // shadowParts
-              part: `cell ${name} col${colidx + 1} row${rowidx + 1}`,
+              part: `cell ${name} col${cx + 1} row${rx + 1}`,
               parts: new Set([
                 `cell`,
                 name,
-                `col${colidx + 1}`,
-                `row${rowidx + 1}`,
+                `col${cx + 1}`,
+                `row${rx + 1}`,
               ]),
               cellpart: (value) => {
                 let input = sheet[name].input; // sheet[name] is a proxy, input points directly to the input element
@@ -54,8 +54,8 @@ customElements.define(
               // ------------------------------------------------------------
               col,
               row,
-              colidx,
-              rowidx,
+              cx,
+              rx,
               formula: name, // if formula != id then its a formula
               onkeyup: (evt) => {
                 // console.log(evt.key, evt.keyCode, name);
@@ -79,8 +79,8 @@ customElements.define(
                     41 /* arrowLeft, arrowUp, arrowRight, arrowDown */
                 ) {
                   // ------------------------------------------------------------
-                  let c = colidx,
-                    r = rowidx;
+                  let c = cx,
+                    r = rx;
                   if (evt.keyCode == 37 && c > 0) --c;
                   else if (evt.keyCode == 38 && r > 0) --r;
                   else if (evt.keyCode == 39 && c < cols.length) ++c;
